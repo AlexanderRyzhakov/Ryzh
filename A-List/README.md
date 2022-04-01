@@ -5,7 +5,7 @@
 Проект задумывался как прежде всего учебный, но который мог бы принести определенную пользу. 
 
 
-![main window](https://downloader.disk.yandex.ru/preview/b98bcf4a9283daeb2ee50623651420c1fa72204ac78d25565e02aae659b0e931/6246ecba/eifS07u7qp7FTqRyuZIq1QnkSrkF_lSvEIiciQx6qHcRIcVePMyA1NkDwXSIm2ifCtCKC3Bq4tbKP94LX_oTXA%3D%3D?uid=0&filename=a-list.jpg&disposition=inline&hash=&limit=0&content_type=image%2Fjpeg&owner_uid=0&tknv=v2&size=944x958)
+![main window](https://downloader.disk.yandex.ru/preview/a15a9f864fa56831aa38b5175ca40b47433aff8699bd735f0c65ece40d606df9/624761dc/eifS07u7qp7FTqRyuZIq1QnkSrkF_lSvEIiciQx6qHcRIcVePMyA1NkDwXSIm2ifCtCKC3Bq4tbKP94LX_oTXA%3D%3D?uid=0&filename=a-list.jpg&disposition=inline&hash=&limit=0&content_type=image%2Fjpeg&owner_uid=0&tknv=v2&size=2048x2048)
 
 ## Использование: 
 ---
