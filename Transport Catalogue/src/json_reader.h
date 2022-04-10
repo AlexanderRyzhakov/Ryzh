@@ -1,6 +1,7 @@
 #pragma once
 
 #include "json.h"
+#include "json_builder.h"
 #include "request_handler.h"
 
 namespace transport_catalogue {
@@ -15,7 +16,7 @@ void AddStop(RequestHandler &handler, const json::Dict *attributes);
 
 svg::Color DefineColor(const json::Node &node);
 
-json::Array ObjectStatus(RequestHandler &handlere, const json::Array &requests);
+json::Node ObjectStatus(RequestHandler &handlere, const json::Array &requests);
 
 void SetRenderSettings(RequestHandler &handler, json::Dict &settings);
 

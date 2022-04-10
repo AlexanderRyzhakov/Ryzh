@@ -4,6 +4,9 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <memory>
+
+#include "json_builder.h"
 
 namespace transport_catalogue {
 
@@ -11,7 +14,7 @@ using namespace std;
 
 void RunJsonIO(RequestHandler &handler, std::istream &input, std::ostream &output) {
     json::Document doc = json::Load(input);
-    const auto requsts = doc.GetRoot().AsMap();
+    const auto requsts = doc.GetRoot().AsDict();
 
     const auto base_requests = requsts.find("base_requests"s);
     const auto render_settings = requsts.find("render_settings"s);
@@ -20,7 +23,7 @@ void RunJsonIO(RequestHandler &handler, std::istream &input, std::ostream &outpu
     if (base_requests != requsts.end()) {
         std::vector<const json::Dict*> bus_attributes;
         for (const auto &request : base_requests->second.AsArray()) {
-            const auto *attributes = &request.AsMap();
+            const auto *attributes = &request.AsDict();
             const auto *request_type = &attributes->at("type");
             if (request_type->AsString() == "Stop") {
                 detail::AddStop(handler, attributes);
@@ -34,7 +37,7 @@ void RunJsonIO(RequestHandler &handler, std::istream &input, std::ostream &outpu
     }
 
     if (render_settings != requsts.end()) {
-        json::Dict rend_settings = render_settings->second.AsMap();
+        json::Dict rend_settings = render_settings->second.AsDict();
         detail::SetRenderSettings(handler, rend_settings);
     }
 
@@ -70,7 +73,7 @@ void AddStop(RequestHandler &handler, const json::Dict *attributes) {
 
     const auto distances_data = attributes->find("road_distances");
     if (distances_data != attributes->end()) {
-        for (const auto &other_stop : distances_data->second.AsMap()) {
+        for (const auto &other_stop : distances_data->second.AsDict()) {
             handler.SetStopDistance(attributes->at("name").AsString(), other_stop.first, other_stop.second.AsInt());
         }
     }
@@ -93,43 +96,43 @@ svg::Color DefineColor(const json::Node &node) {
     return color;
 }
 
-json::Array ObjectStatus(RequestHandler &handler, const json::Array &requests) {
-    json::Array results;
+json::Node ObjectStatus(RequestHandler &handler, const json::Array &requests) {
+    json::Builder builder;
+    builder.StartArray();
 
     for (const auto &request : requests) {
-        const auto attributes = request.AsMap();
-        json::Dict found_stat;
-        found_stat["request_id"] = attributes.at("id");
+        const auto attributes = request.AsDict();
+        builder.StartDict().Key("request_id").Value(attributes.at("id").AsInt());
 
         if (attributes.at("type").AsString() == "Bus") {
             const auto bus = handler.GetBusStat(attributes.at("name").AsString());
             if (bus.has_value()) {
-                found_stat["curvature"] = static_cast<double>(bus.value().courvature);
-                found_stat["route_length"] = static_cast<int>(bus.value().route_fact_length);
-                found_stat["stop_count"] = static_cast<int>(bus.value().stops_on_route);
-                found_stat["unique_stop_count"] = static_cast<int>(bus.value().unique_stops);
+                builder.Key("curvature").Value(static_cast<double>(bus.value().courvature))
+                    .Key("route_length").Value(static_cast<int>(bus.value().route_fact_length))
+                    .Key("stop_count").Value(static_cast<int>(bus.value().stops_on_route))
+                    .Key("unique_stop_count").Value(static_cast<int>(bus.value().unique_stops));
             } else {
-                found_stat["error_message"] = "not found"s;
+                builder.Key("error_message").Value("not found"s);
             }
 
         } else if (attributes.at("type").AsString() == "Stop") {
             const auto stop = handler.GetStopStat(attributes.at("name").AsString());
             if (stop.has_value()) {
-                json::Array buses_for_stop;
+                builder.Key("buses").StartArray();
                 for (const auto &bus : *stop.value().buses_for_stop) {
-                    buses_for_stop.push_back(std::string(bus.data(), bus.size()));
+                    builder.Value(std::string(bus.data(), bus.size()));
                 }
-                found_stat["buses"] = std::move(buses_for_stop);
+                builder.EndArray();
             } else {
-                found_stat["error_message"] = "not found"s;
+                builder.Key("error_message").Value("not found"s);
             }
 
         } else if (attributes.at("type").AsString() == "Map") {
-            found_stat["map"] = handler.GetMap();
+            builder.Key("map").Value(handler.GetMap());
         }
-        results.push_back(std::move(found_stat));
+        builder.EndDict();
     }
-    return results;
+    return builder.EndArray().Build();
 }
 
 void SetRenderSettings(RequestHandler &handler, json::Dict &settings) {
@@ -163,3 +166,4 @@ void SetRenderSettings(RequestHandler &handler, json::Dict &settings) {
 
 } // namespace detail
 } // namespace transport_catalogue
+

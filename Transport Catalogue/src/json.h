@@ -22,6 +22,10 @@ public:
 class Node final : private JsonNode {
 public:
     using variant::variant;
+    using Value = variant;
+
+    Node(Value val) : JsonNode(val) {
+    }
 
     bool IsBool() const;
     bool IsInt() const;
@@ -30,34 +34,18 @@ public:
     bool IsPureDouble() const;
 
     bool IsArray() const;
-    bool IsMap() const;
+    bool IsDict() const;
     bool IsString() const;
 
     const Array& AsArray() const;
     bool AsBool() const;
     double AsDouble() const;
     int AsInt() const;
-    const Dict& AsMap() const;
+    const Dict& AsDict() const;
     const std::string& AsString() const;
     const JsonNode& AsVariant() const;
 
-    void Print(std::ostream &out, int indent = 0) const;
-
-private:
-    void PrintNull(std::ostream &out) const;
-
-    void PrintBool(bool val, std::ostream &out) const;
-
-    template<typename NumberType>
-    void PrintNumber(NumberType val, std::ostream &out) const;
-
-    void PrintString(const std::string val, std::ostream &out) const;
-
-    void PrintArray(const Array &arr, std::ostream &out, int indent) const;
-
-    void PrintDict(const Dict &dict, std::ostream &out, int indent) const;
-
-    void PrintIndent(std::ostream &out, int indent) const;
+    void Print(std::ostream &out) const;
 };
 
 class Document {
@@ -73,13 +61,25 @@ private:
     Node root_;
 };
 
+struct PrintNode {
+    void operator()(std::nullptr_t);
+    void operator()(const Array&);
+    void operator()(const Dict&);
+    void operator()(bool);
+    void operator()(int);
+    void operator()(double);
+    void operator()(const std::string&);
+
+    std::ostream &out;
+    int indent = 0;
+    int indent_step = 2;
+
+private:
+    void PrintIndent();
+};
+
 Document Load(std::istream &input);
 
 void Print(const Document &doc, std::ostream &output);
-
-template<typename NumberType>
-void Node::PrintNumber(NumberType val, std::ostream &out) const {
-    out << val;
-}
 
 } // namespace json

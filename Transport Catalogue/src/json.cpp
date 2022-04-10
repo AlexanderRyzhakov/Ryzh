@@ -208,7 +208,7 @@ bool Node::IsInt() const {
     return holds_alternative<int>(*this);
 }
 
-bool Node::IsMap() const {
+bool Node::IsDict() const {
     return holds_alternative<Dict>(*this);
 }
 
@@ -231,8 +231,8 @@ const Array& Node::AsArray() const {
     return std::get<Array>(*this);
 }
 
-const Dict& Node::AsMap() const {
-    if (!IsMap()) {
+const Dict& Node::AsDict() const {
+    if (!IsDict()) {
         throw std::logic_error("not map");
     }
     return std::get<Dict>(*this);
@@ -273,35 +273,82 @@ const JsonNode& Node::AsVariant() const {
     return *this;
 }
 
-void Node::Print(ostream &out, int indent) const {
-    if (IsNull()) {
-        PrintNull(out);
-    } else if (IsBool()) {
-        PrintBool(AsBool(), out);
-    } else if (IsInt()) {
-        PrintNumber(AsInt(), out);
-    } else if (IsPureDouble()) {
-        PrintNumber(AsDouble(), out);
-    } else if (IsString()) {
-        PrintString(AsString(), out);
-    } else if (IsArray()) {
-        PrintArray(AsArray(), out, indent);
-    } else if (IsMap()) {
-        PrintDict(AsMap(), out, indent);
+void Node::Print(ostream &out) const {
+    visit(PrintNode { out }, static_cast<JsonNode>(*this));
+}
+
+void PrintNode::operator()(std::nullptr_t) {
+    out << "null";
+}
+
+void PrintNode::operator()(const Array &arr) {
+    bool indent_increased = false;
+    if (!arr.empty() && arr.begin()->IsDict()) {
+        out << '\n';
+        PrintIndent();
+        indent += indent_step;
+        indent_increased = true;
     }
+
+    bool first_element = true;
+    out << "["s;
+    for (const auto &element : arr) {
+        if (!first_element) {
+            out << ", "s;
+        }
+        std::visit(PrintNode { out, indent }, element.AsVariant());
+        first_element = false;
+    }
+
+    if (indent_increased) {
+        indent -= indent_step;
+    }
+    if (!arr.empty() && arr.rbegin()->IsDict()) {
+        out << '\n';
+        PrintIndent();
+    }
+
+    out << "]"s;
 }
 
-void Node::PrintNull(std::ostream &out) const {
-    out << "null"sv;
+void PrintNode::operator()(const Dict &dict) {
+    out << '\n';
+    PrintIndent();
+    out << "{\n"s;
+    int comma_count = dict.size() - 1;
+    indent += indent_step;
+    for (const auto &element : dict) {
+        PrintNode printer { out };
+        PrintIndent();
+        printer(element.first);
+        out << ": "s;
+        std::visit(PrintNode { out, indent + indent_step }, element.second.AsVariant());
+        if (comma_count--) {
+            out << ',';
+        }
+        out << '\n';
+    }
+    indent -= indent_step;
+    PrintIndent();
+    out << "}";
 }
 
-void Node::PrintBool(bool val, std::ostream &out) const {
-    out << val ? "true"sv : "false"sv;
+void PrintNode::operator()(bool value) {
+    std::boolalpha(out);
+    out << value;
 }
 
-void Node::PrintString(const std::string val, std::ostream &out) const {
+void PrintNode::operator()(int print) {
+    out << print;
+}
+
+void PrintNode::operator()(double print) {
+    out << print;
+}
+
+void PrintNode::operator()(const std::string &print) {
     out << '\"';
-    for (const char c : val) {
+    for (const char c : print) {
         if (c == '\"') {
             out << "\\\""s;
         } else if (c == '\n') {
@@ -319,56 +366,7 @@ void Node::PrintString(const std::string val, std::ostream &out) const {
     out << '\"';
 }
 
-void Node::PrintArray(const Array &arr, std::ostream &out, int indent) const {
-    bool indent_increased = false;
-    if (!arr.empty() && (arr.begin()->IsMap() || arr.begin()->IsArray())) {
-        out << '\n';
-        PrintIndent(out, indent);
-        indent += 2;
-        indent_increased = true;
-    }
-
-    bool first_element = true;
-    out << "["s;
-    for (const auto &element : arr) {
-        if (!first_element) {
-            out << ", "s;
-        }
-        element.Print(out, indent);
-        first_element = false;
-    }
-    if (indent_increased) {
-        indent -= 2;
-    }
-    if (!arr.empty() && (arr.rbegin()->IsMap() || arr.rbegin()->IsArray())) {
-        out << '\n';
-        PrintIndent(out, indent);
-    }
-    out << "]"s;
-}
-
-void Node::PrintDict(const Dict &dict, std::ostream &out, int indent) const {
-    out << '\n';
-    PrintIndent(out, indent);
-    out << "{\n"s;
-    int comma_count = dict.size() - 1;
-    indent += 2;
-    for (const auto &element : dict) {
-        PrintIndent(out, indent);
-        PrintString(element.first, out);
-        out << ": "s;
-        element.second.Print(out);
-        if (comma_count--) {
-            out << ',';
-        }
-        out << '\n';
-    }
-    indent -= 2;
-    PrintIndent(out, indent);
-    out << "}";
-}
-
-void Node::PrintIndent(std::ostream &out, int indent) const {
+void PrintNode::PrintIndent() {
     for (int i = 0; i < indent; ++i) {
         out << ' ';
     }
