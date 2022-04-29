@@ -1,9 +1,11 @@
 #include "dialogaddbook.h"
 #include "ui_dialogaddbook.h"
 
+#include <cstdio>
 #include <string>
 #include <utility>
 
+#include <QFile>
 #include <QString>
 #include <QPushButton>
 
@@ -14,15 +16,17 @@
 #include "string_process.h"
 
 // ----------------------------------------------------------------------------- constructors
-DialogAddBook::DialogAddBook(QWidget *parent, size_t index) :
+DialogAddBook::DialogAddBook(QWidget *parent, size_t index, ImageDrawer *drawer) :
     QDialog(parent),
     ui(new Ui::DialogAddBook),
+    image_dawer_(drawer),
     index_(index)
 {
     ui->setupUi(this);
     if (index != 0) {
         setWindowTitle("Edit book");
         SetFieldsWithCurrentBook();
+        old_title_ = library.At(index).GetTitle();
     } else {
         setWindowTitle("New book");
         ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
@@ -68,6 +72,7 @@ void DialogAddBook::on_buttonBox_accepted()
     } else {
         library.DeleteBook(index_);
         library.AddBook(book, index_);
+        RenameCoverFile(book.GetTitle());
     }
 }
 
@@ -142,5 +147,20 @@ void DialogAddBook::SetFieldsWithCurrentBook()
     }
 
     ui->comment_edit->setText(QString::fromLocal8Bit(book->GetComment()));
+    image_dawer_->SetTargetWidget(ui->label_edit_book_cover);
+    image_dawer_->DrawFromStorage(CleanString(book->GetTitle()));
 }
+
+void DialogAddBook::RenameCoverFile(const std::string& new_title) const
+{
+    std::string file_name_old = kCoversDir + CleanString(old_title_) + ".jpg";
+    QString from = QString::fromLocal8Bit(file_name_old);
+    QFile file(QString::fromLocal8Bit(file_name_old));
+    if (file.exists()) {
+        std::string file_name_new = kCoversDir + CleanString(new_title) + ".jpg";
+        QString to = QString::fromLocal8Bit(file_name_new);
+        file.rename(from, to);
+    }
+}
+
 

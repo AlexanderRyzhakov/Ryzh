@@ -15,6 +15,7 @@ SOURCES += \
     dialogchangelibraryname.cpp \
     file_read_write.cpp \
     global_library.cpp \
+    image_drawer.cpp \
     lib.cpp \
     library_main_class.cpp \
     main.cpp \
@@ -30,6 +31,7 @@ HEADERS += \
     dialogchangelibraryname.h \
     file_read_write.h \
     global_library.h \
+    image_drawer.h \
     lib.h \
     library_main_class.h \
     string_process.h \

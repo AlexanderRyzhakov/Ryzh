@@ -5,6 +5,8 @@
 #include <QApplication>
 #include <QTableWidget>
 
+#include "image_drawer.h"
+
 QT_BEGIN_NAMESPACE
     namespace Ui { class Lib; }
 QT_END_NAMESPACE
@@ -16,6 +18,8 @@ Q_OBJECT
 public:
     Lib(QWidget *parent = nullptr);
     ~Lib();
+
+protected:
 
 private:
     void CallDeleteDialogue(const QString& id);
@@ -65,11 +69,18 @@ private slots:
 
     void on_actionTest_add_random_books_triggered();
 
+    void on_actionTest_show_test_img_triggered();
+
+    void on_actionTest_write_clean_titles_to_file_triggered();
+
 private:
     Ui::Lib *ui;
+
     bool test_activated_ = false;
 
     QBrush uneven_row_color;
     QBrush fit_color;
+
+    ImageDrawer image_drawer_;
 };
 #endif // LIB_H

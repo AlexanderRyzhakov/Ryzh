@@ -20,6 +20,7 @@
 #include "file_read_write.h"
 #include "global_library.h"
 #include "library_main_class.h"
+#include "string_process.h"
 #include "tests.h"
 
 #include "dialogaddbook.h"
@@ -157,6 +158,7 @@ void Lib::ShowSelectedInfo(QTableWidgetItem *book) {
     size_t index = book->text().toUInt();
 
     QString out = QString::fromLocal8Bit("\"" + library.At(index).GetTitle() + "\"\n");
+
     out += QString::fromLocal8Bit(library.At(index).GetAuthorsString());
     out += '\n';
 
@@ -167,6 +169,9 @@ void Lib::ShowSelectedInfo(QTableWidgetItem *book) {
     }
 
     ui->textBrowser_selected_book->setText(out);
+
+    image_drawer_.SetTargetWidget(ui->label_cover_zone);
+    image_drawer_.DrawFromStorage(CleanString(library.At(index).GetTitle()));
 }
 
 // ----------------------------------------------------------------------------- slots
@@ -252,6 +257,23 @@ void Lib::closeEvent(QCloseEvent* event)
         event->accept();
 }
 
+void Lib::on_actionTest_show_test_img_triggered()
+{
+    ui->textBrowser_selected_book->setText("Image requested");
+    image_drawer_.SetTargetWidget(ui->label_cover_zone);
+    image_drawer_.DrawTest();
+}
+
+
+void Lib::on_actionTest_write_clean_titles_to_file_triggered()
+{
+    std::ofstream file;
+    file.open("clean_titles.txt");
+    for (const auto& [_, book] : library) {
+        file << CleanString(book.GetTitle()) << '\n';
+    }
+}
+
 // ------------------------------------------------------------------- buttons
 
 void Lib::on_pushButton_change_lib_name_clicked()
@@ -265,7 +287,8 @@ void Lib::on_pushButton_change_lib_name_clicked()
 
 void Lib::on_pushButton_add_book_clicked(size_t index)
 {
-    DialogAddBook window(this, index);
+//    ImageDrawer* image_drawer_ptr = &image_drawer_;
+    DialogAddBook window(this, index, &image_drawer_);
     window.setModal(true);
     window.exec();
     SetWinTitle();
@@ -432,5 +455,6 @@ void Lib::on_tableWidget_authors_itemClicked(QTableWidgetItem* item)
     }
 
     ui->textBrowser_selected_book->setText(out);
+    image_drawer_.SetTargetWidget(ui->label_cover_zone);
+    image_drawer_.DrawFromStorage("");
 }
-

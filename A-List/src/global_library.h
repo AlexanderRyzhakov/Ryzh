@@ -5,7 +5,7 @@
 
 extern Library library;
 extern const std::vector<std::string> kVersion; //actaul at begin(), older to end()
-
+extern const std::string kCoversDir;
 #endif // GLOBAL_LIBRARY_H
 
 

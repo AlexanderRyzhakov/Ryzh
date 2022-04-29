@@ -122,6 +122,16 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QLabel" name="label_cover_zone">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="scaledContents">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
       <item>
@@ -287,6 +297,8 @@
      <string>Tools</string>
     </property>
     <addaction name="actionTest_add_random_books"/>
+    <addaction name="actionTest_show_test_img"/>
+    <addaction name="actionTest_write_clean_titles_to_file"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
@@ -315,6 +327,16 @@
   <action name="actionTest_add_random_books">
    <property name="text">
     <string>Test - add random books</string>
+   </property>
+  </action>
+  <action name="actionTest_show_test_img">
+   <property name="text">
+    <string>Test - show test img</string>
+   </property>
+  </action>
+  <action name="actionTest_write_clean_titles_to_file">
+   <property name="text">
+    <string>Test - write clean titles to file</string>
    </property>
   </action>
  </widget>
