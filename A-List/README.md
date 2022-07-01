@@ -5,7 +5,7 @@
 Проект задумывался как прежде всего учебный, но который мог бы принести определенную пользу. 
 
 
-![main window]([https://disk.yandex.ru/client/disk?idApp=client&dialog=slider&idDialog=%2Fdisk%2Fa-list.jpg])
+![main window](https://disk.yandex.ru/client/disk?idApp=client&dialog=slider&idDialog=%2Fdisk%2Fa-list.jpg)
 
 ## Использование: 
 ---
