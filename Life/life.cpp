@@ -1,31 +1,35 @@
 #include "life.h"
 
+#include <functional>
+#include <random>
 #include <stdexcept>
 #include <string>
-#include <random>
-#include <functional>
 
 using namespace std;
 
-void Abort(const string &str) {
+void Abort(const string& str)
+{
     throw std::runtime_error(str);
 }
 
-bool RandomBool() {
-    static auto gen = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
-    return gen();
+bool RandomBool()
+{
+    static auto gen = std::bind(std::uniform_int_distribution<>(0, 100), std::default_random_engine());
+    return gen() < 33;
 }
 
-void FillRandom(Board &board, int board_width, int board_height) {
+void FillRandom(Board& board, int board_width, int board_height)
+{
     board.resize(board_height, vector<Cell>(board_width));
-    for (auto &row : board) {
-        for (auto &col : row) {
+    for (auto& row : board) {
+        for (auto& col : row) {
             col = RandomBool();
         }
     }
 }
 
-const Board& Life::GenerateBoard(int width, int height) {
+const Board& Life::GenerateBoard(int width, int height)
+{
     Clear();
     if (width > 0 && height > 0) {
         FillRandom(pool_, width, height);
@@ -36,14 +40,16 @@ const Board& Life::GenerateBoard(int width, int height) {
     return pool_;
 }
 
-void Life::Clear() {
+void Life::Clear()
+{
     pool_.clear();
     buffer_.clear();
     width_ = 0;
     height_ = 0;
 }
 
-const Board& Life::NextStep() {
+const Board& Life::NextStep()
+{
     bool dead_lock = true;
     for (int row = 0; row < static_cast<int>(pool_.size()); ++row) {
         for (int col = 0; col < static_cast<int>(pool_[row].size()); ++col) {
@@ -64,15 +70,18 @@ const Board& Life::NextStep() {
     return pool_;
 }
 
-int Life::GetWidth() const {
+int Life::GetWidth() const
+{
     return width_;
 }
 
-int Life::GetHeight() const {
+int Life::GetHeight() const
+{
     return height_;
 }
 
-int Life::CountNeighbors(int row, int col) const {
+int Life::CountNeighbors(int row, int col) const
+{
     int result = 0;
     for (int i = row - 1; i <= row + 1; ++i) {
         for (int j = col - 1; j <= col + 1; ++j) {
@@ -85,7 +94,8 @@ int Life::CountNeighbors(int row, int col) const {
     return result;
 }
 
-int Life::GetNeighborValue(int row, int col) const {
+int Life::GetNeighborValue(int row, int col) const
+{
     row = row < 0 ? static_cast<int>(pool_.size()) - 1 : row;
     row = row == static_cast<int>(pool_.size()) ? 0 : row;
 
@@ -94,4 +104,3 @@ int Life::GetNeighborValue(int row, int col) const {
 
     return pool_[row][col];
 }
-

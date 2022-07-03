@@ -1,26 +1,27 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QMessageBox>
 #include <QString>
 
-#include <future>
-#include <functional>
-#include <vector>
-#include <sstream>
-#include <locale>
 #include "timers.h"
+#include <functional>
+#include <future>
+#include <locale>
+#include <sstream>
+#include <vector>
 
 template <class Char>
 class MyFacet : public std::numpunct<Char> {
 public:
-  std::string do_grouping() const { return "\3"; }
-  Char do_thousands_sep() const { return ' '; }
+    std::string do_grouping() const { return "\3"; }
+    Char do_thousands_sep() const { return ' '; }
 };
 
-MainWindow::MainWindow(Life& life, QWidget *parent)
+MainWindow::MainWindow(Life& life, QWidget* parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow),
-      life_(&life)
+    , ui(new Ui::MainWindow)
+    , life_(&life)
 {
     ui->setupUi(this);
 
@@ -45,11 +46,13 @@ MainWindow::MainWindow(Life& life, QWidget *parent)
     timer_->start(100);
 }
 
-MainWindow::~MainWindow() {
+MainWindow::~MainWindow()
+{
     delete ui;
 }
 
-void MainWindow::slotTimerAlarm() {
+void MainWindow::slotTimerAlarm()
+{
     if (!initialized_) {
         UpdateRenderPars();
         initialized_ = true;
@@ -57,30 +60,40 @@ void MainWindow::slotTimerAlarm() {
     Draw();
 }
 
-void MainWindow::resizeEvent(QResizeEvent* event) {
-   QMainWindow::resizeEvent(event);
-   UpdateRenderPars();
+void MainWindow::resizeEvent(QResizeEvent* event)
+{
+    QMainWindow::resizeEvent(event);
+    UpdateRenderPars();
 }
 
-void  MainWindow::Draw() {
+void MainWindow::Draw()
+{
     txt_stream_.seekp(0);
 
     const Board* board_ptr;
     {
         LOG_DURATION_STREAM(" Calculation time", txt_stream_);
-        board_ptr = &life_->NextStep();
+        try {
+            board_ptr = &life_->NextStep();
+        } catch (const std::exception& err) {
+            // life throws exception if it stops
+            timer_->stop();
+            QMessageBox msg(this);
+            msg.setText(err.what());
+            msg.exec();
+        }
     }
     {
         LOG_DURATION_STREAM(" Render time", txt_stream_);
-        auto &board { *board_ptr };
-        for (int row = 0; row < static_cast<int>(board.size()); ++ row) {
-            for (int col = 0; col < static_cast<int>(board[row].size());  ++col) {
+        auto& board { *board_ptr };
+        for (int row = 0; row < static_cast<int>(board.size()); ++row) {
+            for (int col = 0; col < static_cast<int>(board[row].size()); ++col) {
                 if (board[row][col] != 0) {
                     if (!dots_[row * life_->GetWidth() + col]->isVisible()) {
                         dots_[row * life_->GetWidth() + col]->setVisible(true);
                     }
-                 } else {
-                    if ( dots_[row * life_->GetWidth() + col]->isVisible()) {
+                } else {
+                    if (dots_[row * life_->GetWidth() + col]->isVisible()) {
                         dots_[row * life_->GetWidth() + col]->setVisible(false);
                     }
                 }
@@ -90,17 +103,19 @@ void  MainWindow::Draw() {
     ui->textBrowser->setText(QString::fromStdString(txt_stream_.str()));
 }
 
-QGraphicsEllipseItem* MainWindow::AddToScene(int col, int row) {
+QGraphicsEllipseItem* MainWindow::AddToScene(int col, int row)
+{
     return scene_->addEllipse(
-                render_pars_.start_x + col *render_pars_.step_x,
-                render_pars_.start_y + row * render_pars_.step_y,
-                render_pars_.diameter,
-                render_pars_.diameter,
-                pen_,
-                brush_);
+        render_pars_.start_x + col * render_pars_.step_x,
+        render_pars_.start_y + row * render_pars_.step_y,
+        render_pars_.diameter,
+        render_pars_.diameter,
+        pen_,
+        brush_);
 }
 
-void MainWindow::UpdateRenderPars() {
+void MainWindow::UpdateRenderPars()
+{
     render_pars_.step_x = 1. * ui->graphicsView_board->width() / (life_->GetWidth() + 1);
     render_pars_.step_y = render_pars_.step_x;
     render_pars_.diameter = 0.8 * render_pars_.step_x;
@@ -114,4 +129,3 @@ void MainWindow::UpdateRenderPars() {
         }
     }
 }
-

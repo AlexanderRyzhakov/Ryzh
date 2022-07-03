@@ -13,7 +13,8 @@
 
 static const std::chrono::duration<double, std::milli> kPeriod { 10'000 };
 
-inline void Wait() {
+inline void Wait()
+{
     std::this_thread::sleep_for(kPeriod);
 }
 
@@ -21,12 +22,14 @@ class LogDuration {
 public:
     using Clock = std::chrono::steady_clock;
 
-    LogDuration(const std::string id, std::ostream &dst_stream = std::cerr)
+    LogDuration(const std::string id, std::ostream& dst_stream = std::cerr)
         : id_(id)
-        , dst_stream_(dst_stream) {
+        , dst_stream_(dst_stream)
+    {
     }
 
-    ~LogDuration() {
+    ~LogDuration()
+    {
         using namespace std::chrono;
         using namespace std::literals;
 
@@ -38,5 +41,5 @@ public:
 private:
     const std::string id_;
     const Clock::time_point start_time_ = Clock::now();
-    std::ostream &dst_stream_;
+    std::ostream& dst_stream_;
 };
